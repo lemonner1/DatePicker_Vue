@@ -2,12 +2,12 @@
 module.exports = {
   content: [
     "./node_modules/flowbite/**/*.js",
-    "./components/**/*.{js,vue,ts}",
-    "./layouts/**/*.vue",
-    "./pages/**/*.vue",
+    "./src/components/**/*.{js,vue,ts}",
+    "./src/layouts/**/*.vue",
+    "./src/pages/**/*.vue",
     "./plugins/**/*.{js,ts}",
     "./nuxt.config.{js,ts}",
-    "./index.vue",
+    "./src/app.vue",
   ],
   theme: {
     extend: {
