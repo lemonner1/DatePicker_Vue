@@ -12,16 +12,14 @@
             type="text"
             class="shadow-lg bg-gray-50 border block border-gray-300 text-gray-900 text-sm rounded-lg focus:border-cyan-500 block w-full pl-10 p-2.5"
             placeholder="Выберите дату">
-            
-        <button @click="onSubmit"
-            class="inset-y-0.5 right-32 absolute bg-blue-500 hover:bg-blue-600 hover:text-white rounded rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white"
+        <button @click="clearTextEdit"
+            class="top-0 p-2 h-full text-white rounded-r-lg right-32 absolute rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 hover:text-white dark:text-white"
             type="button">
-            <span
-                class="relative px-5 py-2 hover:text-white bg-white transition-all ease-in duration-75 dark:bg-gray-900 rounded-lg group-hover:bg-opacity-0">
-                <svg id="clearTextEditIcon" class="inset-y-0 text-black absolute hover:text-white" @click="clearTextEdit"
-                    xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="2 -7.5 20 40">
+            <span class="px-5 py-2 h-full w-full">
+                <svg id="clearTextEditIcon" class="h-full inset-y-0 text-black absolute text-white"
+                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 0 30 23">
                     <path fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/>
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
                 </svg>
             </span>
         </button>
@@ -38,9 +36,8 @@
         </div>
     </div>
 
-    <!-- Тело выпадающего списка (dropdown) -->
-    <div id="userDropdown" ref="calendarDrop" datepicker-buttons data-date="" inline-datepicker @click="clickItem()"
-        class="absolute fixed hidden bg-white divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+    <div id="userDropdown" ref="calendarDrop" datepicker datepicker-buttons data-date="" @click="clickItem()"
+        class="hidden bg-white divide-gray-100 rounded-lg shadow dark:bg-gray-700">
     </div>
 </template>
 
@@ -97,8 +94,11 @@ function createDB() {
         dropdown.value = new Dropdown($targetEl, $triggerEl)
         Object.assign(Datepicker.locales, ru);
         const datePicker = new Datepicker($targetEl, {
+            todayBtn: true,
+            todayBtnMode: 1,
+            clearBtn: true,
             language: 'ru',
-            locales: ru
+            locales: ru,
         });
         closeDropdown.value = () => { dropdown.value.hide() }
     };
