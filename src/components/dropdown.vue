@@ -10,33 +10,41 @@
         </div>
         <input id="dropdownDatePicker" ref="triger" v-model="dateInput" autocomplete="off" data-dropdown-toggle="dropdown"
             type="text"
-            class="shadow-lg bg-gray-50 border block border-gray-300 text-gray-900 text-sm rounded-lg focus:border-cyan-500 block w-full pl-10 p-2.5"
+            class="shadow-lg bg-gray-50 border block border-gray-300 text-gray-900 text-sm rounded-lg focus:border-cyan-500 w-full pl-10 p-2.5"
             placeholder="Выберите дату">
-        <button @click="clearTextEdit"
+        <button @click="rangeSwitcher"
             class="top-0 p-2 h-full text-white rounded-r-lg right-32 absolute rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 hover:text-white dark:text-white"
             type="button">
-            <span class="px-5 py-2 h-full w-full">
-                <svg id="clearTextEditIcon" class="h-full inset-y-0 text-black absolute text-white"
-                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 0 30 23">
+            <span v-if="isRange" class="px-5 py-2 h-full w-full">
+                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white"
+                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 1 30 23">
                     <path fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
+                        d="M17 2h2v2h4v14H5V4h4V2h2v2h6V2zm-6 4H7v2h14V6H11zm-4 4v6h14v-6H7zM3 20h16v2H1V8h2v12z" />
+                        
+                </svg>
+            </span>
+            <span v-else class="px-5 py-2 h-full w-full">
+                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white"
+                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 1 30 23">
+                    <path fill="currentColor"
+                        d="M15 2h2v2h4v18H3V4h4V2h2v2h6V2zM5 8h14V6H5v2zm0 2v10h14V10H5z" />
                 </svg>
             </span>
         </button>
 
         <div class="pl-3 flex items-center justify-between">
             <button @click="sendValue"
-                class="bg-blue-500 hover:bg-blue-600 text-dark font-bold py-2 px-0.5 rounded overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white"
+                class="bg-blue-500 hover:bg-blue-600 text-dark py-2 px-0.5 rounded overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white"
                 type="button">
                 <span
-                    class="relative px-5 py-2 bg-white transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                    class="relative px-5 py-2 bg-white transition-all ease-in duration-175 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
                     Отправить
                 </span>
             </button>
         </div>
     </div>
 
-    <div id="userDropdown" ref="calendarDrop" datepicker datepicker-buttons data-date="" @click="clickItem()"
+    <div id="userDropdown" ref="calendarDrop" datepicker-buttons @click="clickItem()"
         class="hidden bg-white divide-gray-100 rounded-lg shadow dark:bg-gray-700">
     </div>
 </template>
@@ -52,29 +60,12 @@ import ru from 'flowbite-datepicker/locales/ru';
 
 Datepicker.locales.ru = ru;
 
-const props = defineProps({
-    label: {
-        type: [String],
-        default: "",
-    },
-    values: {
-        type: [Array],
-        default: () => []
-    },
-    keylabel: {
-        type: [String],
-        default: "",
-    },
-    currentItem: {
-        type: [String, Object],
-        default: () => null,
-    }
-})
-
 const slots = useSlots();
+const emit = defineEmits('input')
 
-const emit = defineEmits(['input', 'update:currentItem']);
-
+let firstElement = ""
+let secondElement = "0"
+let isRange = false;
 const calendarDrop = ref();
 const triger = ref();
 
@@ -93,7 +84,7 @@ function createDB() {
     if ($triggerEl) {
         dropdown.value = new Dropdown($targetEl, $triggerEl)
         Object.assign(Datepicker.locales, ru);
-        const datePicker = new Datepicker($targetEl, {
+        new Datepicker($targetEl, {
             todayBtn: true,
             todayBtnMode: 1,
             clearBtn: true,
@@ -108,19 +99,37 @@ function hasSlot(name) {
     return !!slots[name]
 }
 
-function clickItem(item, index, keylabel) {
-    emit('input', item, index);
-    if (keylabel) {
-        dateInput.value = item[keylabel]
+function clickItem() {
+    if (isRange)
+    {
+        secondElement = new Date(firstElement)
+        firstElement = new Date(calendarDrop.value.datepicker.dates[0])
+        let newFirstElement = new Date(firstElement.getTime() - (firstElement.getTimezoneOffset() * 60000)).toISOString()
+        let newSecondElement = new Date(secondElement.getTime() - (secondElement.getTimezoneOffset() * 60000)).toISOString()
+        if(firstElement.getTime() > secondElement.getTime())
+        {
+            dateInput.value = secondElement.toLocaleDateString("ru-RU") + "-" + firstElement.toLocaleDateString("ru-RU")
+            let dates = [newSecondElement, newFirstElement]
+            emit('input', dates)
+        }
+        else
+        {
+            secondElement = firstElement
+        }
     }
-    else {
-        dateInput.value = item
+    else   
+    {
+        let tempDate = new Date(calendarDrop.value.datepicker.dates[0])
+        let newDate = new Date(tempDate.getTime() - (tempDate.getTimezoneOffset() * 60000)).toISOString() 
+        let newDateInside = new Date(calendarDrop.value.datepicker.dates[0])
+        dateInput.value = newDateInside.toLocaleDateString("ru-RU")
+        emit('input', newDate)
     }
-
-    emit('update:currentItem', item)
 }
 
-function clearTextEdit() {
-    dateInput.value = ""
+function rangeSwitcher() {
+    isRange = isRange ? false : true
+    dateInput.value = dateInput.value + " "
+    dateInput.value = dateInput.value.pop
 }
 </script>
