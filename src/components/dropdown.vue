@@ -16,18 +16,17 @@
             class="top-0 p-2 h-full text-white rounded-r-lg right-32 absolute rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 hover:text-white dark:text-white"
             type="button">
             <span v-if="isRange" class="px-5 py-2 h-full w-full">
-                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white"
-                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 1 30 23">
+                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white" xmlns="http://www.w3.org/2000/svg"
+                    width="40" height="60" viewBox="-3 1 30 23">
                     <path fill="currentColor"
                         d="M17 2h2v2h4v14H5V4h4V2h2v2h6V2zm-6 4H7v2h14V6H11zm-4 4v6h14v-6H7zM3 20h16v2H1V8h2v12z" />
-                        
+
                 </svg>
             </span>
             <span v-else class="px-5 py-2 h-full w-full">
-                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white"
-                    xmlns="http://www.w3.org/2000/svg" width="40" height="60" viewBox="-3 1 30 23">
-                    <path fill="currentColor"
-                        d="M15 2h2v2h4v18H3V4h4V2h2v2h6V2zM5 8h14V6H5v2zm0 2v10h14V10H5z" />
+                <svg id="clearTextEditIcon" class="h-full inset-y-0 absolute text-white" xmlns="http://www.w3.org/2000/svg"
+                    width="40" height="60" viewBox="-3 1 30 23">
+                    <path fill="currentColor" d="M15 2h2v2h4v18H3V4h4V2h2v2h6V2zM5 8h14V6H5v2zm0 2v10h14V10H5z" />
                 </svg>
             </span>
         </button>
@@ -60,12 +59,23 @@ import ru from 'flowbite-datepicker/locales/ru';
 
 Datepicker.locales.ru = ru;
 
+const props = defineProps({
+    currentDate: {
+        type: String,
+        default: "",
+    },
+    isRanged: {
+        type: Boolean,
+        default: false,
+    },
+})
+
 const slots = useSlots();
-const emit = defineEmits('input')
+const emit = defineEmits('input', 'update:currentDate')
 
 let firstElement = ""
 let secondElement = "0"
-let isRange = false;
+let isRange = props.isRanged;
 const calendarDrop = ref();
 const triger = ref();
 
@@ -80,7 +90,6 @@ function createDB() {
 
     const $targetEl = calendarDrop.value; // document.getElementById('userDropdown')
     const $triggerEl = triger.value;  // document.getElementById('dropdownDatePicker')
-
     if ($triggerEl) {
         dropdown.value = new Dropdown($targetEl, $triggerEl)
         Object.assign(Datepicker.locales, ru);
@@ -93,34 +102,57 @@ function createDB() {
         });
         closeDropdown.value = () => { dropdown.value.hide() }
     };
+    valueDeclarator()
 }
 
 function hasSlot(name) {
     return !!slots[name]
 }
 
+function valueDeclarator() {
+    let newDate = props.currentDate
+    let today = new Date()
+    if (!isEmpty(newDate) && dateVeritable(newDate)) {
+        newDate = 1611176400000
+        //newDate = parseInt((new Date(newDate).getTime()).toFixed(0)).toString
+        calendarDrop.value.datepicker.dates = newDate
+        console.log(calendarDrop.value.datepicker.dates)
+        dateInput.value = props.currentDate
+
+        return
+    }
+    else {
+        if (!isRange) {
+            dateInput.value = today.toLocaleDateString("ru-RU")
+        }
+        else {
+            let localToday = new Date()
+            let defaultRangeThirtyMonthAgo = new Date(today.setDate(today.getDate() - 30))
+            dateInput.value = defaultRangeThirtyMonthAgo.toLocaleDateString("ru-RU") + "-" + localToday.toLocaleDateString("ru-RU")
+        }
+    }
+}
+
 function clickItem() {
-    if (isRange)
-    {
+    if (isRange) {
         secondElement = new Date(firstElement)
         firstElement = new Date(calendarDrop.value.datepicker.dates[0])
         let newFirstElement = new Date(firstElement.getTime() - (firstElement.getTimezoneOffset() * 60000)).toISOString()
         let newSecondElement = new Date(secondElement.getTime() - (secondElement.getTimezoneOffset() * 60000)).toISOString()
-        if(firstElement.getTime() > secondElement.getTime())
-        {
+        if (firstElement.getTime() > secondElement.getTime()) {
             dateInput.value = secondElement.toLocaleDateString("ru-RU") + "-" + firstElement.toLocaleDateString("ru-RU")
             let dates = [newSecondElement, newFirstElement]
             emit('input', dates)
         }
-        else
-        {
-            secondElement = firstElement
+        else {
+            dateInput.value = firstElement.toLocaleDateString("ru-RU") + "-" + secondElement.toLocaleDateString("ru-RU")
+            let dates = [newFirstElement, newSecondElement]
+            emit('input', dates)
         }
     }
-    else   
-    {
+    else {
         let tempDate = new Date(calendarDrop.value.datepicker.dates[0])
-        let newDate = new Date(tempDate.getTime() - (tempDate.getTimezoneOffset() * 60000)).toISOString() 
+        let newDate = new Date(tempDate.getTime() - (tempDate.getTimezoneOffset() * 60000)).toISOString()
         let newDateInside = new Date(calendarDrop.value.datepicker.dates[0])
         dateInput.value = newDateInside.toLocaleDateString("ru-RU")
         emit('input', newDate)
@@ -129,7 +161,55 @@ function clickItem() {
 
 function rangeSwitcher() {
     isRange = isRange ? false : true
-    dateInput.value = dateInput.value + " "
+    dateInput.value += " "
     dateInput.value = dateInput.value.pop
+}
+
+function isEmpty(str) {
+    if (str.trim() == '')
+        return true;
+
+    return false;
+}
+
+function dateVeritable(value) {
+    if (!isRange) {
+        let arrDate = value.split(".")
+        arrDate[1] -= 1
+        let date = new Date(arrDate[2], arrDate[1], arrDate[0])
+
+        if ((date.getFullYear() == arrDate[2]) && (date.getMonth() == arrDate[1]) && (date.getDate() == arrDate[0]))
+            return true
+        else
+            return false
+    }
+    else {
+        let arrDate = value.split("-")
+        let firstDate = arrDate[0]
+        let secondDate = arrDate[1]
+
+        let fArrDate = firstDate.split("."); let sArrDate = secondDate.split(".")
+        fArrDate[1] = -1; sArrDate[1] = -1
+
+        let fDate = new Date(fArrDate[2], fArrDate[1], fArrDate[0]); let sDate = new Date(sArrDate[2], sArrDate[1], sArrDate[0])
+        if (fDate.getTime() < sDate.getTime()) {
+            if ((fDate.getFullYear() == fArrDate[2]) && (fDate.getMonth() == fArrDate[1]) && (fDate.getDate() == fArrDate[0]))
+                {firstDate = true}
+            else
+                {firstDate = false}
+
+            if ((sDate.getFullYear() == sArrDate[2]) && (sDate.getMonth() == sArrDate[1]) && (sDate.getDate() == sArrDate[0]))
+                {secondDate = true}
+            else
+                {secondDate = false}
+
+            if (firstDate == secondDate)
+                return true
+            else
+                return false
+        }
+        else
+            return false
+    }
 }
 </script>

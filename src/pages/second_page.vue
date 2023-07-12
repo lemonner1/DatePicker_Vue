@@ -7,12 +7,14 @@
             Я не знаю зачем я создал эту страницу, но возможно она мне пригодится в будущем.
         </p>
 
-        <Dropdown></Dropdown>
+        <Dropdown v-model:currentDate="currData" :isRanged="true">
+
+        </Dropdown>
     </div>
 </template>
 
 <script setup>
-
+    const currData = "06.06.2023-10.06.2023"
 </script>
 
 <style scoped>
