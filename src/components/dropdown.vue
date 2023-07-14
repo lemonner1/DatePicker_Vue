@@ -109,23 +109,37 @@ function hasSlot(name) {
     return !!slots[name]
 }
 
-function valueDeclarator() {
+function valueDeclarator() {        // Функция, которая помещает в DP-строку значение, поданное на вход как проперти 
     let newDate = props.currentDate
     let today = new Date()
-    if (!isEmpty(newDate) && dateVeritable(newDate)) {
-        newDate = 1611176400000
-        //newDate = parseInt((new Date(newDate).getTime()).toFixed(0)).toString
-        calendarDrop.value.datepicker.dates = newDate
-        console.log(calendarDrop.value.datepicker.dates)
-        dateInput.value = props.currentDate
+    if (!isEmpty(newDate) && dateValidator(newDate)) {  // Проверка на пустоту и истинность поданной даты (даже если поданная дата - промежуток)
+        let arrDate = newDate.split(".")                // Парсер меняет дату и месяц местами, поэтому тут прибегаем к ручному изменению их положения
+        newDate = arrDate[1] + "." + arrDate[0] + "." + arrDate[2]
+        newDate = parseInt((new Date(newDate).getTime()).toFixed(0))
 
-        return
+        //calendarDrop.value.datepicker.dates = newDate                         //  Может потом пригодиться
+        //calendarDrop.value.datepicker.picker.viewDate = newDate
+        calendarDrop.value.datepicker.picker.currentView.focused = [newDate]
+        calendarDrop.value.datepicker.dates = [newDate]
+        calendarDrop.value.datepicker.picker.currentView.selected = [newDate]
+
+        console.log(calendarDrop)
+        dateInput.value = props.currentDate
     }
     else {
-        if (!isRange) {
+        if (!isRange) {     //  Поданное число на вход неправильно записано  =>  В строку устанавливается дата текущего дня
             dateInput.value = today.toLocaleDateString("ru-RU")
+            
+            today = today.toLocaleDateString("ru-RU")
+            let arrDate = today.split(".")                // Парсер меняет дату и месяц местами, поэтому тут прибегаем к ручному изменению их положения
+            today = arrDate[1] + "." + arrDate[0] + "." + arrDate[2]
+            today = parseInt((new Date(today).getTime()).toFixed(0))
+
+            calendarDrop.value.datepicker.picker.currentView.focused = [today]
+            calendarDrop.value.datepicker.dates = [today]
+            calendarDrop.value.datepicker.picker.currentView.selected = [today]
         }
-        else {
+        else {   //  Если промежуток, то конечным значением является текущий день, а начальным дата за 30 дней до текущего дня
             let localToday = new Date()
             let defaultRangeThirtyMonthAgo = new Date(today.setDate(today.getDate() - 30))
             dateInput.value = defaultRangeThirtyMonthAgo.toLocaleDateString("ru-RU") + "-" + localToday.toLocaleDateString("ru-RU")
@@ -133,7 +147,7 @@ function valueDeclarator() {
     }
 }
 
-function clickItem() {
+function clickItem() {      //  Функция для события при клике в область DP
     if (isRange) {
         secondElement = new Date(firstElement)
         firstElement = new Date(calendarDrop.value.datepicker.dates[0])
@@ -159,7 +173,7 @@ function clickItem() {
     }
 }
 
-function rangeSwitcher() {
+function rangeSwitcher() {      //  Переключение режима с одиночной даты на промежуток и обратно
     isRange = isRange ? false : true
     dateInput.value += " "
     dateInput.value = dateInput.value.pop
@@ -172,7 +186,7 @@ function isEmpty(str) {
     return false;
 }
 
-function dateVeritable(value) {
+function dateValidator(value) {
     if (!isRange) {
         let arrDate = value.split(".")
         arrDate[1] -= 1
@@ -183,27 +197,16 @@ function dateVeritable(value) {
         else
             return false
     }
-    else {
+    else if (value.includes('-')) {
         let arrDate = value.split("-")
-        let firstDate = arrDate[0]
-        let secondDate = arrDate[1]
+        let firstDate = arrDate[0]; let secondDate = arrDate[1]
 
         let fArrDate = firstDate.split("."); let sArrDate = secondDate.split(".")
-        fArrDate[1] = -1; sArrDate[1] = -1
+        fArrDate[1] -= 1; sArrDate[1] -= 1
 
         let fDate = new Date(fArrDate[2], fArrDate[1], fArrDate[0]); let sDate = new Date(sArrDate[2], sArrDate[1], sArrDate[0])
         if (fDate.getTime() < sDate.getTime()) {
-            if ((fDate.getFullYear() == fArrDate[2]) && (fDate.getMonth() == fArrDate[1]) && (fDate.getDate() == fArrDate[0]))
-                {firstDate = true}
-            else
-                {firstDate = false}
-
-            if ((sDate.getFullYear() == sArrDate[2]) && (sDate.getMonth() == sArrDate[1]) && (sDate.getDate() == sArrDate[0]))
-                {secondDate = true}
-            else
-                {secondDate = false}
-
-            if (firstDate == secondDate)
+            if ((fDate.getFullYear() == fArrDate[2]) && (fDate.getMonth() == fArrDate[1]) && (fDate.getDate() == fArrDate[0]) && (sDate.getFullYear() == sArrDate[2]) && (sDate.getMonth() == sArrDate[1]) && (sDate.getDate() == sArrDate[0]))
                 return true
             else
                 return false
@@ -211,5 +214,7 @@ function dateVeritable(value) {
         else
             return false
     }
+    else
+        return false
 }
 </script>
